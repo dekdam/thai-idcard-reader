@@ -1,0 +1,17 @@
+{
+  "name": "thai-id-card",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  
+  "author": "Santiti Thongbor",
+  "license": "MIT",
+  "description": "",
+  "dependencies": {
+    "thaismartcardreader.js": "^0.2.4",
+    "ws": "^8.18.3"
+  }
+}
