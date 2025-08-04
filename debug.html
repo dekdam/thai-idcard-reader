@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dynamic WebSocket Client</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .status-dot {
+            height: 10px;
+            width: 10px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 8px;
+        }
+        .status-connected {
+            background-color: #48bb78; /* green-500 */
+        }
+        .status-disconnected {
+            background-color: #f56565; /* red-500 */
+        }
+    </style>
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen">
+
+    <div class="w-full max-w-lg bg-white rounded-lg shadow-xl p-8">
+        <div class="flex justify-between items-center mb-6">
+            <h1 class="text-2xl font-bold text-gray-800">WebSocket Client</h1>
+            <div id="status" class="flex items-center">
+                <span id="status-dot" class="status-dot status-disconnected"></span>
+                <span id="status-text" class="font-medium text-gray-600">Disconnected</span>
+            </div>
+        </div>
+        
+        <!-- New Server URL Input -->
+        <div class="mb-4">
+            <label for="serverUrlInput" class="block text-gray-700 text-sm font-bold mb-2">Server URL:</label>
+            <input type="text" id="serverUrlInput" class="shadow-sm appearance-none border rounded w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500" value="ws://localhost:15399">
+        </div>
+
+        <div class="space-y-4 mb-6">
+            <input type="text" id="messageInput" class="shadow-sm appearance-none border rounded w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Enter message to send" disabled>
+            <button id="sendButton" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded w-full focus:outline-none focus:shadow-outline transition-colors duration-200" disabled>
+                Send Message
+            </button>
+        </div>
+
+        <div>
+            <h2 class="text-xl font-semibold text-gray-800 mb-2">Log</h2>
+            <div id="log" class="bg-gray-200 p-4 rounded-lg text-gray-700 h-48 overflow-y-auto text-sm">
+                <p>Enter a server URL and click "Connect".</p>
+            </div>
+        </div>
+        
+        <div class="mt-6 flex space-x-4">
+             <button id="connectButton" class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded w-full focus:outline-none focus:shadow-outline transition-colors duration-200">
+                Connect
+            </button>
+            <button id="disconnectButton" class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded w-full focus:outline-none focus:shadow-outline transition-colors duration-200" disabled>
+                Disconnect
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // --- DOM Elements ---
+        const connectButton = document.getElementById('connectButton');
+        const disconnectButton = document.getElementById('disconnectButton');
+        const sendButton = document.getElementById('sendButton');
+        const serverUrlInput = document.getElementById('serverUrlInput'); // New element
+        const messageInput = document.getElementById('messageInput');
+        const logDiv = document.getElementById('log');
+        const statusDot = document.getElementById('status-dot');
+        const statusText = document.getElementById('status-text');
+
+        let socket;
+
+        // --- Utility Functions ---
+        function logMessage(message) {
+            const p = document.createElement('p');
+            p.innerHTML = message; // Using innerHTML to allow for simple formatting like <b>
+            logDiv.appendChild(p);
+            logDiv.scrollTop = logDiv.scrollHeight; // Auto-scroll to bottom
+        }
+
+        function updateUIState(isConnected) {
+            serverUrlInput.disabled = isConnected; // Disable URL input when connected
+            messageInput.disabled = !isConnected;
+            sendButton.disabled = !isConnected;
+            connectButton.disabled = isConnected;
+            disconnectButton.disabled = !isConnected;
+
+            statusDot.classList.toggle('status-connected', isConnected);
+            statusDot.classList.toggle('status-disconnected', !isConnected);
+            statusText.textContent = isConnected ? 'Connected' : 'Disconnected';
+        }
+
+        // --- WebSocket Logic ---
+        function connect() {
+            // Prevent multiple connections
+            if (socket && (socket.readyState === WebSocket.OPEN || socket.readyState === WebSocket.CONNECTING)) {
+                logMessage('Already connected or connecting.');
+                return;
+            }
+            
+            // Get the server URL from the input field
+            const serverUrl = serverUrlInput.value.trim();
+            if (!serverUrl) {
+                logMessage('<span class="text-red-600"><b>Error:</b> Server URL cannot be empty.</span>');
+                return;
+            }
+
+            // Create a new WebSocket connection using the dynamic URL.
+            socket = new WebSocket(serverUrl);
+            logMessage(`<i>Connecting to ${serverUrl}...</i>`);
+
+
+            // Event listener for when the connection is opened.
+            socket.onopen = function(event) {
+                updateUIState(true);
+                logMessage('<b>Connection established.</b>');
+            };
+
+            // Event listener for incoming messages from the server.
+            socket.onmessage = function(event) {
+                logMessage(`<span class="text-blue-600"><b>Received:</b> ${event.data}</span>`);
+            };
+
+            // Event listener for connection errors.
+            socket.onerror = function(error) {
+                console.error('WebSocket Error:', error);
+                logMessage(`<span class="text-red-600"><b>Error:</b> Could not connect to ${serverUrl}.</span>`);
+                updateUIState(false);
+            };
+
+            // Event listener for when the connection is closed.
+            socket.onclose = function(event) {
+                updateUIState(false);
+                logMessage('<b>Connection closed.</b>');
+                socket = null; // Clear the socket object
+            };
+        }
+        
+        function disconnect() {
+            if (socket) {
+                socket.close();
+            }
+        }
+
+        function sendMessage() {
+            const message = messageInput.value;
+            if (message && socket && socket.readyState === WebSocket.OPEN) {
+                socket.send(message);
+                logMessage(`<span class="text-green-600"><b>Sent:</b> ${message}</span>`);
+                messageInput.value = ''; // Clear input after sending
+            } else {
+                logMessage('<span class="text-red-600">Cannot send message. Not connected.</span>');
+            }
+        }
+
+        // --- Event Listeners ---
+        connectButton.addEventListener('click', connect);
+        disconnectButton.addEventListener('click', disconnect);
+        sendButton.addEventListener('click', sendMessage);
+        
+        // Allow sending message with Enter key
+        messageInput.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter') {
+                sendMessage();
+            }
+        });
+
+        // --- Initial State ---
+        updateUIState(false);
+
+    </script>
+</body>
+</html>
