@@ -1,4 +1,4 @@
-const { Reader } = require('thaismartcardreader.js');
+const { Reader , Person } = require('thaismartcardreader.js');
 const { WebSocketServer } = require('ws');
 
 function startWebSocketServer(port = 15399) {
@@ -13,6 +13,9 @@ function startWebSocketServer(port = 15399) {
     });
     ws.on('error', error => {
       console.log('WebSocket Error:', error);
+    });
+    ws.on('message', async message => {
+        console.log('Received message from client:', message.toString());
     });
   });
 
