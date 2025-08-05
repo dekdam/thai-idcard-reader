@@ -3,6 +3,16 @@
 # This script ensures Node.js version 23 is installed on macOS, 
 # installs dependencies, and then runs the Thai ID Card Reader WebSocket server.
 
+# --- Check for Xcode Command Line Tools (required for native modules and USB access) ---
+if ! xcode-select -p &> /dev/null; then
+    echo "Xcode Command Line Tools not found. Installing..."
+    xcode-select --install
+    echo "Please follow the prompts to complete installation, then re-run this script."
+    exit 1
+else
+    echo "Xcode Command Line Tools are installed."
+fi
+
 # --- Ensure NVM is available ---
 # Set the NVM directory and source the script if it exists
 export NVM_DIR="$HOME/.nvm"
