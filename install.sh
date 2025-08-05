@@ -1,49 +1,63 @@
 #!/bin/bash
 
-# This script checks if Node.js is installed on macOS, installs dependencies,
-# and then runs the Thai ID Card Reader WebSocket server.
+# This script ensures Node.js version 23 is installed on macOS, 
+# installs dependencies, and then runs the Thai ID Card Reader WebSocket server.
 
-# --- Check for Node.js and attempt to install if missing on macOS using NVM ---
-# The 'command -v node' command checks if 'node' is a known command.
-if ! command -v node &> /dev/null
-then
-    echo "Node.js is not found. Attempting to install via NVM (Node Version Manager)..."
+# --- Ensure NVM is available ---
+# Set the NVM directory and source the script if it exists
+export NVM_DIR="$HOME/.nvm"
 
-    # Set the NVM directory and source the script if it exists
-    export NVM_DIR="$HOME/.nvm"
-    
-    # Check if NVM is installed, if not, install it
-    if [ ! -s "$NVM_DIR/nvm.sh" ]; then
-        echo "NVM not found. Installing NVM..."
-        # Use curl to download and run the official NVM install script
-        curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
-        if [ $? -ne 0 ]; then
-            echo "NVM installation failed. Please check for errors and try again."
-            exit 1
-        fi
-        echo "NVM installed successfully."
-    fi
-
-    # Source the NVM script to make it available in the current shell session.
-    # This is necessary because the installer adds the source command to your shell's
-    # profile file (like .zshrc or .bash_profile), but it won't be loaded in this script's session.
-    [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-    [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
-
-    # Now that NVM is loaded, install the specified version of Node.js
-    echo "Installing Node.js version 23 with NVM..."
-    nvm install 23
+# Check if NVM is installed, if not, install it
+if [ ! -s "$NVM_DIR/nvm.sh" ]; then
+    echo "NVM not found. Installing NVM..."
+    # Use curl to download and run the official NVM install script
+    curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
     if [ $? -ne 0 ]; then
-        echo "Node.js installation via NVM failed. Please check for errors."
+        echo "NVM installation failed. Please check for errors and try again."
+        exit 1
+    fi
+    echo "NVM installed successfully."
+fi
+
+# Source the NVM script to make it available in the current shell session.
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
+
+
+# --- Check for correct Node.js version ---
+DESIRED_NODE_VERSION="23"
+NEEDS_INSTALL=false
+
+# Check if node command exists
+if ! command -v node &> /dev/null; then
+    echo "Node.js is not installed."
+    NEEDS_INSTALL=true
+else
+    # If node exists, check its major version
+    CURRENT_MAJOR_VERSION=$(node -v | cut -d'v' -f2 | cut -d'.' -f1)
+    echo "Found Node.js version: $(node -v)"
+    if [ "$CURRENT_MAJOR_VERSION" != "$DESIRED_NODE_VERSION" ]; then
+        echo "Incorrect Node.js version detected. Required major version is $DESIRED_NODE_VERSION."
+        NEEDS_INSTALL=true
+    fi
+fi
+
+# If the correct version is not installed or active, use NVM to install/switch
+if [ "$NEEDS_INSTALL" = true ]; then
+    echo "Installing and switching to Node.js version $DESIRED_NODE_VERSION with NVM..."
+    nvm install "$DESIRED_NODE_VERSION"
+    if [ $? -ne 0 ]; then
+        echo "Node.js v$DESIRED_NODE_VERSION installation via NVM failed. Please check for errors."
         exit 1
     fi
     
     # Use the newly installed version
-    nvm use 23
-    echo "Node.js version 23 installed successfully via NVM."
+    nvm use "$DESIRED_NODE_VERSION"
+    echo "Successfully switched to Node.js version $DESIRED_NODE_VERSION."
 fi
 
-echo "Node.js is installed."
+
+echo "Correct Node.js version is active."
 node -v
 npm -v
 
@@ -52,7 +66,7 @@ npm -v
 if [ ! -d "node_modules" ]; then
     echo "Dependencies not found. Installing..."
     # Run npm install to download the required packages.
-    npm install
+    npm install @tanjaae/thaismartcardreader ws
     if [ $? -ne 0 ]; then
         echo "npm install failed. Please check for errors."
         exit 1
