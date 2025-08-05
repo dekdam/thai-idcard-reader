@@ -60,7 +60,6 @@ if [ ! -d "node_modules" ]; then
     echo "Dependencies installed successfully."
 fi
 
-# --- Run the Server ---
-# Once Node.js is confirmed and dependencies are installed, start the server.
-echo "Starting the WebSocket server..."
-npm run start
+# --- Create automation.sh script ---
+echo "cd $(pwd)" | cat > "automation.sh"
+echo "$(which node) index.js" | cat >> "automation.sh"

@@ -48,3 +48,4 @@ nuxt-env.d.ts
 
 sonar-project.properties
 .scannerwork
+automation.sh
