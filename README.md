@@ -3,7 +3,7 @@
 This project provides a Node.js server for reading Thai national ID cards using a smart card reader, and broadcasting the card data to connected WebSocket clients. It also serves a debug HTML page for testing.
 
 ## Features
-- Reads Thai ID card data using `thaismartcardreader.js`.
+- Reads Thai ID card data using [`thaismartcardreader.js`](https://github.com/dogrocker/thaismartcardreader.js).
 - Broadcasts card data and status updates to all connected WebSocket clients.
 - Serves a debug HTML page via HTTP for testing and development.
 - Modular code: HTTP and WebSocket servers are separated for clarity and maintainability.
