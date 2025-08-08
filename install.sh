@@ -33,6 +33,14 @@ fi
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
 [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
 
+# Ensure NVM is loaded in future shell sessions
+if ! grep -q 'NVM_DIR' "$HOME/.bash_profile" 2>/dev/null; then
+    echo 'export NVM_DIR="$HOME/.nvm"' >> "$HOME/.bash_profile"
+    echo '[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"' >> "$HOME/.bash_profile"
+    echo '[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"' >> "$HOME/.bash_profile"
+    echo "NVM initialization added to ~/.bash_profile"
+fi
+
 
 # --- Check for correct Node.js version ---
 DESIRED_NODE_VERSION="23"
