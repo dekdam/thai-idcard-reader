@@ -86,4 +86,5 @@ fi
 
 # --- Create automation.sh script ---
 echo "cd $(pwd)" | cat > "automation.sh"
+echo "$(which npm) install" | cat >> "automation.sh"
 echo "$(which node) index.js" | cat >> "automation.sh"
