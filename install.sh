@@ -76,7 +76,7 @@ npm -v
 if [ ! -d "node_modules" ]; then
     echo "Dependencies not found. Installing..."
     # Run npm install to download the required packages.
-    npm install @tanjaae/thaismartcardreader ws
+    npm install
     if [ $? -ne 0 ]; then
         echo "npm install failed. Please check for errors."
         exit 1
