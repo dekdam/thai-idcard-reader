@@ -39,6 +39,7 @@ if ! grep -q 'NVM_DIR' "$HOME/.bash_profile" 2>/dev/null; then
     echo '[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"' >> "$HOME/.bash_profile"
     echo '[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"' >> "$HOME/.bash_profile"
     echo "NVM initialization added to ~/.bash_profile"
+    source "$HOME/.bash_profile"  # Reload the profile to apply changes
 fi
 
 
